@@ -1,0 +1,644 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Excel export API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "development"
+        }
+    ],
+    "paths": {
+        "/file": {
+            "post": {
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json":{
+                                "schema":{
+                                    "type": "object",
+                                    "properties": {
+                                        "fileID": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "created successfully"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            },
+            "summary": "create new file"
+        },
+        "/{fileID}/sheet": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/CreateSheetInput"
+                },
+                "responses": {
+                    "201": {
+                        "description": "created successfully"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            },
+            "summary": "create new sheet"
+        },
+        "/{fileID}/save": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                }
+            ],
+            "post": {
+                "responses": {
+                    "201": {
+                        "description": "saved successfully"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            },
+            "summary": "create new sheet"
+        },
+        "/{fileID}/{sheetName}/setCellValue": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/SetCellValue"
+                },
+                "description": "set new value to certain cell",
+                "responses": {
+                    "204": {
+                        "description": "successfully set"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
+        "/{fileID}/{sheetName}/mergeCell": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/MergeCell"
+                },
+                "description": "set new value to certain cell",
+                "responses": {
+                    "204": {
+                        "description": "successfully set"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
+        "/{fileID}/{sheetName}/boldCell": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/BoldCell"
+                },
+                "description": "make certain cell bold",
+                "responses": {
+                    "204": {
+                        "description": "successfully set"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
+        "/{fileID}/{sheetName}/italicCell": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/ItalicCell"
+                },
+                "description": "make certain cell italic",
+                "responses": {
+                    "204": {
+                        "description": "successfully set"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
+        "/{fileID}/{sheetName}/setColWidth": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/SetColWidth"
+                },
+                "description": "set width to certain column",
+                "responses": {
+                    "204": {
+                        "description": "successfully set"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
+        "/{fileID}/{sheetName}/setRowHeight": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/SetRowHeight"
+                },
+                "description": "set height to certain row",
+                "responses": {
+                    "204": {
+                        "description": "successfully set"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
+        "/{fileID}/{sheetName}/setCellColor": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/SetCellColor"
+                },
+                "description": "set color to certain cell",
+                "responses": {
+                    "204": {
+                        "description": "successfully set"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
+        "/{fileID}/{sheetName}/definedName": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/CreateDefinedName"
+                },
+                "description": "create new defined name",
+                "responses": {
+                    "204": {
+                        "description": "successfully created"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
+        "/{fileID}/{sheetName}/dataValidation": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/CreateDataValidation"
+                },
+                "description": "create new data validation",
+                "responses": {
+                    "204": {
+                        "description": "successfully created"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "parameters": {
+            "ID": {
+                "name": "ID",
+                "in": "path",
+                "description": "ID of object",
+                "required": true,
+                "schema": {
+                    "type": "integer"
+                }
+            },
+            "fileID": {
+                "name": "fileID",
+                "in": "path",
+                "description": "unique file id",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "sheetName": {
+                "name": "sheetName",
+                "in": "path",
+                "description": "sheetName",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
+        "schemas": {
+            "CreateSheetInput": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            }
+        },
+        "responses": {
+            "InternalServerError": {
+                "description": "Something went wrong on server side"
+            },
+            "BadRequestError": {
+                "description": "Bad request"
+            }
+        },
+        "requestBodies": {
+            "CreateSheetInput": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/CreateSheetInput"
+                        }
+                    }
+                }
+            },
+            
+            "SetCellValue": {
+                "description": "value could be any value: string, bool, int, datetime, time",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "cell": {
+                                    "type": "string",
+                                    "example":"D2"
+                                },
+                                "value": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "cell",
+                                "value"
+                            ]
+                        }
+                    }
+                }
+            },
+            "MergeCell": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "hcell": {
+                                    "type": "string",
+                                    "example":"A3"
+                                },
+                                "vcell": {
+                                    "type": "string",
+                                    "example":"H3"
+                                }
+                            },
+                            "required": [
+                                "hcell",
+                                "vcell"
+                            ]
+                        }
+                    }
+                }
+            },
+            "BoldCell": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "cell": {
+                                    "type": "string",
+                                    "example":"A3"
+                                },
+                                "bold": {
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "required": [
+                                "cell",
+                                "bold"
+                            ]
+                        }
+                    }
+                }
+            },
+            "CenterCell": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "cell": {
+                                    "type": "string",
+                                    "example":"A3"
+                                },
+                                "horizontal": {
+                                    "type": "boolean",
+                                    "example":true
+                                },
+                                "vertical": {
+                                    "type": "string",
+                                    "example":true
+                                }
+                            },
+                            "required": [
+                                "cell",
+                                "horizontal",
+                                "vertical"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ItalicCell": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "cell": {
+                                    "type": "string",
+                                    "example":"A3"
+                                },
+                                "italic": {
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "required": [
+                                "cell",
+                                "italic"
+                            ]
+                        }
+                    }
+                }
+            },
+            "SetColWidth": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "column": {
+                                    "type": "string",
+                                    "example":"CA"
+                                },
+                                "width": {
+                                    "type": "number",
+                                    "format": "double",
+                                    "example": 25.5,
+                                    "minimum": 1.0
+                                }
+                            },
+                            "required": [
+                                "column",
+                                "width"
+                            ]
+                        }
+                    }
+                }
+            },
+            "SetRowHeight": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "row": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "height": {
+                                    "type": "number",
+                                    "format": "double",
+                                    "example": 25.5,
+                                    "minimum": 1.0
+                                }
+                            },
+                            "required": [
+                                "row",
+                                "height"
+                            ]
+                        }
+                    }
+                }
+            },
+            "SetCellColor": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "cell": {
+                                    "type": "string",
+                                    "example": "A3"
+                                },
+                                "color": {
+                                    "type": "string",
+                                    "example": "#CFA3CC"
+                                }
+                            },
+                            "required": [
+                                "cell",
+                                "color"
+                            ]
+                        }
+                    }
+                }
+            },
+            "CreateDefinedName": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "example": "products"
+                                },
+                                "vCell": {
+                                    "type": "string",
+                                    "example": "$A$1"
+                                },
+                                "hCell": {
+                                    "type": "string",
+                                    "example": "$A$10"
+                                },
+                                "scopeSheetName": {
+                                    "type": "string",
+                                    "example": "Sheet1"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "vCell",
+                                "hCell",
+                                "scopeSheetName"
+                            ]
+                        }
+                    }
+                }
+            }   ,
+            "CreateDataValidation": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "cell": {
+                                    "type": "string",
+                                    "example": "D3"
+                                },
+                                "definedName": {
+                                    "type": "string",
+                                    "example": "fruits"
+                                }
+                            },
+                            "required": [
+                                "cell",
+                                "definedName"
+                            ]
+                        }
+                    }
+                }
+            }   
+        }
+    }
+}
