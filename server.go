@@ -9,10 +9,11 @@ import (
 	"github.com/uptrace/bunrouter/extra/reqlog"
 )
 
-func RunServer(port string) {
+func RunServer(port, filesPort string) {
 	router := bunrouter.New(
 		bunrouter.Use(reqlog.NewMiddleware()),
 	)
+
 	router.POST("/file", CreateFile)
 	router.WithMiddleware(FileExistsMiddleware).WithGroup("/:fileID", func(g *bunrouter.Group) {
 		g.POST("/sheet", CreateSheet)
@@ -31,7 +32,10 @@ func RunServer(port string) {
 		})
 	})
 
-	http.ListenAndServe(":"+port, router)
+	fs := http.FileServer(http.Dir("./outputs"))
+	http.Handle("/", fs)
+	go http.ListenAndServe(":"+port, router)
+	http.ListenAndServe(":"+filesPort, nil)
 
 }
 
