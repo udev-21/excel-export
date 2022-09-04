@@ -105,14 +105,14 @@ func SheetExistsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 	}
 }
 
-type SetValueInput struct {
+type SetCellColorInput struct {
 	Cell  string `json:"cell"`
 	Color string `json:"color"`
 }
 
-func SetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
+func SetCellColor(w http.ResponseWriter, req bunrouter.Request) error {
 	defer req.Body.Close()
-	input := SetValueInput{}
+	input := SetCellColorInput{}
 	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return err
@@ -130,14 +130,14 @@ func SetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 	return nil
 }
 
-type SetCellColorInput struct {
+type SetCellValueInput struct {
 	Cell  string      `json:"cell"`
 	Value interface{} `json:"value"`
 }
 
-func SetCellColor(w http.ResponseWriter, req bunrouter.Request) error {
+func SetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 	defer req.Body.Close()
-	input := SetCellColorInput{}
+	input := SetCellValueInput{}
 	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return err
