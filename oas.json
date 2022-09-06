@@ -408,6 +408,33 @@
                     }
                 }
             }
+        },
+        "/{fileID}/{sheetName}/setCellCenter": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/CenterCell"
+                },
+                "description": "center cell",
+                "responses": {
+                    "204": {
+                        "description": "successfully created"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
         }
     },
     "components": {
