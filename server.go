@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 
 	"github.com/uptrace/bunrouter"
@@ -213,11 +215,20 @@ func SetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 
 func BulkSetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 	defer req.Body.Close()
+	b, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Println(string(b))
 	input := map[string]interface{}{}
-	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
+	if err := json.Unmarshal(b, &input); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return err
 	}
+	// if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	return err
+	// }
 	fileID := req.Params().ByName("fileID")
 	file := currentSessions[fileID]
 	sheetName := req.Params().ByName("sheetName")
