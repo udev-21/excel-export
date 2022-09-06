@@ -20,6 +20,7 @@ func RunServer(port, filesPort string) {
 		g.POST("/save", SaveFile)
 		g.WithMiddleware(SheetExistsMiddleware).WithGroup("/:sheetName", func(g1 *bunrouter.Group) {
 			g1.POST("/setCellValue", SetCellValue)
+			g1.POST("/bulkSetCellValue", BulkSetCellValue)
 			g1.POST("/mergeCell", MergeCell)
 			g1.POST("/boldCell", BoldCell)
 			g1.POST("/italicCell", ItalicCell)
@@ -29,6 +30,9 @@ func RunServer(port, filesPort string) {
 			g1.POST("/setCellColor", SetCellColor)
 			g1.POST("/definedName", SetDefinedName)
 			g1.POST("/dataValidation", SetDataValidation)
+			g1.POST("/setCellFontSize", SetCellFontSize)
+			g1.POST("/setCellBorder", SetCellBorder)
+
 		})
 	})
 
@@ -130,6 +134,57 @@ func SetCellColor(w http.ResponseWriter, req bunrouter.Request) error {
 	return nil
 }
 
+type SetCellFontSizeInput struct {
+	Cell string  `json:"cell"`
+	Size float64 `json:"size"`
+}
+
+func SetCellFontSize(w http.ResponseWriter, req bunrouter.Request) error {
+	defer req.Body.Close()
+	input := SetCellFontSizeInput{}
+	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return err
+	}
+
+	fileID := req.Params().ByName("fileID")
+	file := currentSessions[fileID]
+	sheetName := req.Params().ByName("sheetName")
+	if err := file.SetCellFontSize(sheetName, input.Cell, input.Size); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return err
+	}
+	currentSessions[fileID] = file
+	return nil
+}
+
+type SetCellBorderInput struct {
+	Cell    string `json:"cell"`
+	Color   string `json:"color"`
+	StyleID int    `json:"styleID"`
+}
+
+func SetCellBorder(w http.ResponseWriter, req bunrouter.Request) error {
+	defer req.Body.Close()
+	input := SetCellBorderInput{}
+	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return err
+	}
+
+	fileID := req.Params().ByName("fileID")
+	file := currentSessions[fileID]
+	sheetName := req.Params().ByName("sheetName")
+	if err := file.SetCellBorder(sheetName, input.Cell, input.Color, input.StyleID); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return err
+	}
+	currentSessions[fileID] = file
+	return nil
+}
+
 type SetCellValueInput struct {
 	Cell  string      `json:"cell"`
 	Value interface{} `json:"value"`
@@ -150,6 +205,27 @@ func SetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return err
+	}
+	currentSessions[fileID] = file
+	return nil
+}
+
+func BulkSetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
+	defer req.Body.Close()
+	input := []SetCellValueInput{}
+	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return err
+	}
+	fileID := req.Params().ByName("fileID")
+	file := currentSessions[fileID]
+	sheetName := req.Params().ByName("sheetName")
+	for _, v := range input {
+		if err := file.SetCellValue(sheetName, v.Cell, v.Value); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return err
+		}
 	}
 	currentSessions[fileID] = file
 	return nil
@@ -346,7 +422,8 @@ func SetDefinedName(w http.ResponseWriter, req bunrouter.Request) error {
 }
 
 type SetDataValidationInput struct {
-	Cell        string `json:"cell"`
+	HCell       string `json:"hCell"`
+	VCell       string `json:"vCell"`
 	DefinedName string `json:"definedName"`
 }
 
@@ -361,7 +438,7 @@ func SetDataValidation(w http.ResponseWriter, req bunrouter.Request) error {
 	fileID := req.Params().ByName("fileID")
 	file := currentSessions[fileID]
 	sheetName := req.Params().ByName("sheetName")
-	if err := file.NewDataValidation(sheetName, input.DefinedName, input.Cell); err != nil {
+	if err := file.NewDataValidation(sheetName, input.DefinedName, input.HCell, input.VCell); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't center cells:" + err.Error()))
 		return err

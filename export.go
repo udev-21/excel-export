@@ -204,6 +204,94 @@ func (s *Session) SetCellColor(sheetName, cell, color string) error {
 	return nil
 }
 
+func (s *Session) SetCellFontSize(sheetName, cell string, size float64) error {
+	//check if sheet exists
+	if sheet, ok := s.sheets[sheetName]; !ok {
+		return errors.New("sheet doesn't exists")
+	} else {
+		if cellStyle, ok := sheet.styles[cell]; ok {
+			if cellStyle.Font == nil {
+				cellStyle.Font = &excelize.Font{
+					Size: size,
+				}
+			} else {
+				cellStyle.Font.Size = size
+			}
+			sheet.styles[cell] = cellStyle
+		} else {
+			cellStyle = excelize.Style{
+				Font: &excelize.Font{
+					Size: size,
+				},
+			}
+			sheet.styles[cell] = cellStyle
+		}
+		s.sheets[sheetName] = sheet
+	}
+	return nil
+}
+
+func (s *Session) SetCellBorder(sheetName, cell, color string, style int) error {
+	//check if sheet exists
+	if sheet, ok := s.sheets[sheetName]; !ok {
+		return errors.New("sheet doesn't exists")
+	} else {
+		if cellStyle, ok := sheet.styles[cell]; ok {
+			cellStyle.Border = []excelize.Border{
+				{
+					Type:  "left",
+					Color: color,
+					Style: style,
+				},
+				{
+					Type:  "top",
+					Color: color,
+					Style: style,
+				},
+				{
+					Type:  "bottom",
+					Color: color,
+					Style: style,
+				},
+				{
+					Type:  "right",
+					Color: color,
+					Style: style,
+				},
+			}
+			sheet.styles[cell] = cellStyle
+		} else {
+			cellStyle = excelize.Style{
+				Border: []excelize.Border{
+					{
+						Type:  "left",
+						Color: color,
+						Style: style,
+					},
+					{
+						Type:  "top",
+						Color: color,
+						Style: style,
+					},
+					{
+						Type:  "bottom",
+						Color: color,
+						Style: style,
+					},
+					{
+						Type:  "right",
+						Color: color,
+						Style: style,
+					},
+				},
+			}
+			sheet.styles[cell] = cellStyle
+		}
+		s.sheets[sheetName] = sheet
+	}
+	return nil
+}
+
 func (s *Session) SetColWidth(sheetName, column string, width float64) error {
 	//check if sheet exists
 	if _, ok := s.sheets[sheetName]; !ok {
@@ -230,9 +318,9 @@ func (s *Session) NewDefinedName(sheetName, name, vCell, hCell, scopeSheetName s
 	})
 }
 
-func (s *Session) NewDataValidation(sheetName, definedName, cell string) error {
+func (s *Session) NewDataValidation(sheetName, definedName, hCell, vCell string) error {
 	dvRange := excelize.NewDataValidation(true)
-	dvRange.Sqref = fmt.Sprintf("%s:%s", cell, cell)
+	dvRange.Sqref = fmt.Sprintf("%s:%s", hCell, vCell)
 	dvRange.SetSqrefDropList(definedName)
 	return s.e.AddDataValidation(sheetName, dvRange)
 }

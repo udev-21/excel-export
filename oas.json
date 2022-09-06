@@ -111,6 +111,34 @@
                 }
             }
         },
+
+        "/{fileID}/{sheetName}/bulkSetCellValue": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/BulkSetCellValue"
+                },
+                "description": "set new value to certain cell",
+                "responses": {
+                    "204": {
+                        "description": "successfully set"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
         "/{fileID}/{sheetName}/mergeCell": {
             "parameters": [
                 {
@@ -326,6 +354,60 @@
                     }
                 }
             }
+        },
+        "/{fileID}/{sheetName}/setCellFontSize": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/SetCellFontSize"
+                },
+                "description": "set cell font size",
+                "responses": {
+                    "204": {
+                        "description": "successfully created"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
+        },
+        "/{fileID}/{sheetName}/setCellBorder": {
+            "parameters": [
+                {
+                    "$ref": "#/components/parameters/fileID"
+                },
+                {
+                    "$ref": "#/components/parameters/sheetName"
+                }
+            ],
+            "post": {
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/SetCellBorder"
+                },
+                "description": "set cell border style",
+                "responses": {
+                    "204": {
+                        "description": "successfully created"
+                    },
+                    "5XX": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    },
+                    "4XX": {
+                        "$ref": "#/components/responses/BadRequestError"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -413,6 +495,32 @@
                     }
                 }
             },
+            "BulkSetCellValue": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "cell": {
+                                        "type": "string",
+                                        "example":"D2"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "cell",
+                                    "value"
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            
             "MergeCell": {
                 "content": {
                     "application/json": {
@@ -583,6 +691,57 @@
                     }
                 }
             },
+            "SetCellFontSize": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "cell": {
+                                    "type": "string",
+                                    "example": "A3"
+                                },
+                                "size": {
+                                    "type": "number",
+                                    "format": "decimal"
+                                }
+                            },
+                            "required": [
+                                "cell",
+                                "size"
+                            ]
+                        }
+                    }
+                }
+            },
+            "SetCellBorder": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "cell": {
+                                    "type": "string",
+                                    "example": "A3"
+                                },
+                                "color": {
+                                    "type": "string",
+                                    "example":"FF00FF"
+                                },
+                                "styleID": {
+                                    "type": "integer",
+                                    "example":1
+                                }
+                            },
+                            "required": [
+                                "cell",
+                                "color",
+                                "styleID"
+                            ]
+                        }
+                    }
+                }
+            },
             "CreateDefinedName": {
                 "content": {
                     "application/json": {
@@ -622,7 +781,11 @@
                         "schema": {
                             "type": "object",
                             "properties": {
-                                "cell": {
+                                "hCell": {
+                                    "type": "string",
+                                    "example": "D3"
+                                },
+                                "vCell": {
                                     "type": "string",
                                     "example": "D3"
                                 },
@@ -632,7 +795,8 @@
                                 }
                             },
                             "required": [
-                                "cell",
+                                "vCell",
+                                "hCell",
                                 "definedName"
                             ]
                         }
