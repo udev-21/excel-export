@@ -213,7 +213,7 @@ func SetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 
 func BulkSetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 	defer req.Body.Close()
-	input := []SetCellValueInput{}
+	input := map[string]interface{}{}
 	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return err
@@ -221,8 +221,8 @@ func BulkSetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 	fileID := req.Params().ByName("fileID")
 	file := currentSessions[fileID]
 	sheetName := req.Params().ByName("sheetName")
-	for _, v := range input {
-		if err := file.SetCellValue(sheetName, v.Cell, v.Value); err != nil {
+	for cell, v := range input {
+		if err := file.SetCellValue(sheetName, cell, v); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return err
