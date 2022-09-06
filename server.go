@@ -3,18 +3,21 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 
 	"github.com/uptrace/bunrouter"
 	"github.com/uptrace/bunrouter/extra/reqlog"
 )
 
-func RunServer(port, filesPort string) {
-	router := bunrouter.New(
-		bunrouter.Use(reqlog.NewMiddleware()),
-	)
+func RunServer(port, filesPort string, debug bool) {
+	var router = new(bunrouter.Router)
+	if debug {
+		router = bunrouter.New(
+			bunrouter.Use(reqlog.NewMiddleware()),
+		)
+	} else {
+		router = bunrouter.New()
+	}
 
 	router.POST("/file", CreateFile)
 	router.WithMiddleware(FileExistsMiddleware).WithGroup("/:fileID", func(g *bunrouter.Group) {
@@ -215,20 +218,11 @@ func SetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 
 func BulkSetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 	defer req.Body.Close()
-	b, err := io.ReadAll(req.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println(string(b))
 	input := map[string]interface{}{}
-	if err := json.Unmarshal(b, &input); err != nil {
+	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return err
 	}
-	// if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	return err
-	// }
 	fileID := req.Params().ByName("fileID")
 	file := currentSessions[fileID]
 	sheetName := req.Params().ByName("sheetName")
