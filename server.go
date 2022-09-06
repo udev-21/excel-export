@@ -32,6 +32,7 @@ func RunServer(port, filesPort string) {
 			g1.POST("/dataValidation", SetDataValidation)
 			g1.POST("/setCellFontSize", SetCellFontSize)
 			g1.POST("/setCellBorder", SetCellBorder)
+			g1.POST("/setCellCenter", SetCellCenter)
 
 		})
 	})
@@ -386,6 +387,32 @@ func SetRowHeight(w http.ResponseWriter, req bunrouter.Request) error {
 	file := currentSessions[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.SetRowHeight(sheetName, input.Row, input.Height); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("can't center cells:" + err.Error()))
+		return err
+	}
+	currentSessions[fileID] = file
+	return nil
+}
+
+type SetCellCenterinput struct {
+	Cell       string `json:"cell"`
+	Horizontal bool   `json:"horizontal"`
+	Vertical   bool   `json:"vertical"`
+}
+
+func SetCellCenter(w http.ResponseWriter, req bunrouter.Request) error {
+	defer req.Body.Close()
+	input := SetCellCenterinput{}
+	if err := json.NewDecoder(req.Body).Decode(&input); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return err
+	}
+
+	fileID := req.Params().ByName("fileID")
+	file := currentSessions[fileID]
+	sheetName := req.Params().ByName("sheetName")
+	if err := file.CenterCell(sheetName, input.Cell, input.Horizontal, input.Vertical); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't center cells:" + err.Error()))
 		return err
