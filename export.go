@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/xuri/excelize/v2"
@@ -14,13 +15,15 @@ type Sheet struct {
 }
 
 type Session struct {
-	e      *excelize.File
-	sheets map[string]Sheet
+	e            *excelize.File
+	sheets       map[string]Sheet
+	LastTimeUsed time.Time
 }
 
 func NewSession() string {
 	newSession := Session{
-		sheets: make(map[string]Sheet),
+		sheets:       make(map[string]Sheet),
+		LastTimeUsed: time.Now(),
 	}
 	newFile := excelize.NewFile()
 	newSession.e = newFile

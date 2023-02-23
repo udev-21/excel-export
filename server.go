@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/uptrace/bunrouter"
 	"github.com/uptrace/bunrouter/extra/reqlog"
@@ -92,6 +93,9 @@ func FileExistsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			return nil
 		} else {
+			session := currentSessions[fileID]
+			session.LastTimeUsed = time.Now()
+			currentSessions[fileID] = session
 			return next(w, req)
 		}
 	}
@@ -109,6 +113,9 @@ func SheetExistsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 				w.WriteHeader(http.StatusBadRequest)
 				return nil
 			} else {
+				session := currentSessions[fileID]
+				session.LastTimeUsed = time.Now()
+				currentSessions[fileID] = session
 				return next(w, req)
 			}
 		}
