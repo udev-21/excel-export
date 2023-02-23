@@ -28,7 +28,7 @@ func unusedSessionPurger() {
 	ticker := time.Tick(time.Hour * time.Duration(defaultSessionPurgeHour))
 	for range ticker {
 		for k, v := range currentSessions {
-			if time.Since(v.LastTimeUsed) > time.Hour*24 {
+			if time.Since(v.LastTimeUsed) > time.Hour*time.Duration(defaultSessionPurgeHour) {
 				delete(currentSessions, k)
 			}
 		}
