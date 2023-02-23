@@ -24,16 +24,8 @@ func main() {
 }
 
 func unusedSessionPurger() {
-	hours, err := time.ParseDuration(fmt.Sprintf(
-		"%vh",
-		defaultSessionPurgeHour,
-	))
 
-	if err != nil {
-		panic(err)
-	}
-
-	ticker := time.Tick(time.Hour * hours)
+	ticker := time.Tick(time.Hour * time.Duration(defaultSessionPurgeHour))
 	for range ticker {
 		for k, v := range currentSessions {
 			if time.Since(v.LastTimeUsed) > time.Hour*24 {
