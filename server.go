@@ -246,6 +246,9 @@ func SaveFile(w http.ResponseWriter, req bunrouter.Request) error {
 		w.Write([]byte("can't save file:" + err.Error()))
 		return err
 	}
+	// purge the file from memory
+	delete(currentSessions, fileID)
+
 	return nil
 }
 
