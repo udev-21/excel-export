@@ -19,7 +19,7 @@ func main() {
 	flag.BoolVar(&debug, "debug", false, "debug mode")
 	flag.Parse()
 	log.Printf("staring...\nserverPort: %d\nfileServerPort: %d\n", serverPort, fileServerPort)
-	go unusedSessionPurger()
+	// go unusedSessionPurger()
 	RunServer(fmt.Sprint(serverPort), fmt.Sprint(fileServerPort), debug)
 }
 

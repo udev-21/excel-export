@@ -93,9 +93,9 @@ func FileExistsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			return nil
 		} else {
-			session := currentSessions[fileID]
-			session.LastTimeUsed = time.Now()
-			currentSessions[fileID] = session
+			// session := currentSessions[fileID]
+			// session.LastTimeUsed = time.Now()
+			// currentSessions[fileID] = session
 			return next(w, req)
 		}
 	}
