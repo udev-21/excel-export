@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,26 +19,33 @@ type Session struct {
 	e            *excelize.File
 	sheets       map[string]Sheet
 	LastTimeUsed time.Time
+	mu           *sync.Mutex
 }
 
 func NewSession() string {
 	newSession := Session{
 		sheets:       make(map[string]Sheet),
 		LastTimeUsed: time.Now(),
+		mu:           &sync.Mutex{},
 	}
 	newFile := excelize.NewFile()
 	newSession.e = newFile
 
 	newSessionUUID := uuid.New().String()
-	if _, ok := currentSessions[newSessionUUID]; ok {
+	if _, ok := currentSessions.s[newSessionUUID]; ok {
 		newSessionUUID = uuid.New().String()
 	} else {
-		currentSessions[newSessionUUID] = newSession
+		currentSessions.m.Lock()
+		currentSessions.s[newSessionUUID] = newSession
+		currentSessions.m.Unlock()
 	}
 	return newSessionUUID
 }
 
 func (s *Session) NewSheet(name string) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if len(s.sheets) == 0 {
 		idx := s.e.GetActiveSheetIndex()
 		s.e.SetSheetName("Sheet1", name)
@@ -58,6 +66,7 @@ func (s *Session) NewSheet(name string) (int, error) {
 }
 
 func (s *Session) Save(fileName string) error {
+	s.mu.Lock()
 	//commit cell styles before saving
 	for sheetName, sheet := range s.sheets {
 		for cell, style := range sheet.styles {
@@ -73,11 +82,13 @@ func (s *Session) Save(fileName string) error {
 			}
 		}
 	}
-
+	s.mu.Unlock()
 	return s.e.SaveAs(fileName)
 }
 
 func (s *Session) SetCellValue(sheetName, cell string, val interface{}) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.e.SetCellValue(sheetName, cell, val)
 }
 
@@ -86,6 +97,8 @@ func (s *Session) MergeCell(sheetName, hCell, vCell string) error {
 }
 
 func (s *Session) BoldCell(sheetName, cell string, bold bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	//check if sheet exists
 	if sheet, ok := s.sheets[sheetName]; !ok {
 		return errors.New("sheet doesn't exists")
@@ -114,6 +127,9 @@ func (s *Session) BoldCell(sheetName, cell string, bold bool) error {
 }
 
 func (s *Session) CenterCell(sheetName, cell string, h, v bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	horizontal := ""
 	if h {
 		horizontal = "center"
@@ -153,6 +169,8 @@ func (s *Session) CenterCell(sheetName, cell string, h, v bool) error {
 }
 
 func (s *Session) ItalicCell(sheetName, cell string, italic bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	//check if sheet exists
 	if sheet, ok := s.sheets[sheetName]; !ok {
 		return errors.New("sheet doesn't exists")
@@ -181,6 +199,8 @@ func (s *Session) ItalicCell(sheetName, cell string, italic bool) error {
 }
 
 func (s *Session) SetCellColor(sheetName, cell, color string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	//check if sheet exists
 	if sheet, ok := s.sheets[sheetName]; !ok {
 		return errors.New("sheet doesn't exists")
@@ -208,6 +228,8 @@ func (s *Session) SetCellColor(sheetName, cell, color string) error {
 }
 
 func (s *Session) SetCellFontSize(sheetName, cell string, size float64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	//check if sheet exists
 	if sheet, ok := s.sheets[sheetName]; !ok {
 		return errors.New("sheet doesn't exists")
@@ -235,6 +257,8 @@ func (s *Session) SetCellFontSize(sheetName, cell string, size float64) error {
 }
 
 func (s *Session) SetCellBorder(sheetName, cell, color string, style int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	//check if sheet exists
 	if sheet, ok := s.sheets[sheetName]; !ok {
 		return errors.New("sheet doesn't exists")
@@ -296,6 +320,8 @@ func (s *Session) SetCellBorder(sheetName, cell, color string, style int) error 
 }
 
 func (s *Session) SetColWidth(sheetName, column string, width float64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	//check if sheet exists
 	if _, ok := s.sheets[sheetName]; !ok {
 		return errors.New("sheet doesn't exists")
@@ -305,6 +331,8 @@ func (s *Session) SetColWidth(sheetName, column string, width float64) error {
 }
 
 func (s *Session) SetRowHeight(sheetName string, row int, height float64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	//check if sheet exists
 	if _, ok := s.sheets[sheetName]; !ok {
 		return errors.New("sheet doesn't exists")
@@ -314,6 +342,8 @@ func (s *Session) SetRowHeight(sheetName string, row int, height float64) error 
 }
 
 func (s *Session) NewDefinedName(sheetName, name, vCell, hCell, scopeSheetName string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.e.SetDefinedName(&excelize.DefinedName{
 		Name:     name,
 		RefersTo: fmt.Sprintf("%s!%s:%s", sheetName, vCell, hCell),
@@ -322,6 +352,8 @@ func (s *Session) NewDefinedName(sheetName, name, vCell, hCell, scopeSheetName s
 }
 
 func (s *Session) NewDataValidation(sheetName, definedName, hCell, vCell string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	dvRange := excelize.NewDataValidation(true)
 	dvRange.Sqref = fmt.Sprintf("%s:%s", hCell, vCell)
 	dvRange.SetSqrefDropList(definedName)

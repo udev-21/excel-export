@@ -73,14 +73,16 @@ func CreateSheet(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 	fileID := req.Params().ByName("fileID")
 
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	if _, err := file.NewSheet(input.Name); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 	} else {
 		w.WriteHeader(http.StatusCreated)
 	}
-	currentSessions[fileID] = file
+	currentSessions.m.Lock()
+	currentSessions.s[fileID] = file
+	currentSessions.m.Unlock()
 
 	return nil
 }
@@ -88,7 +90,7 @@ func CreateSheet(w http.ResponseWriter, req bunrouter.Request) error {
 func FileExistsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 	return func(w http.ResponseWriter, req bunrouter.Request) error {
 		fileID := req.Params().ByName("fileID")
-		if _, ok := currentSessions[fileID]; !ok {
+		if _, ok := currentSessions.s[fileID]; !ok {
 			w.WriteHeader(http.StatusBadRequest)
 			return nil
 		} else {
@@ -103,7 +105,7 @@ func FileExistsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 func SheetExistsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 	return func(w http.ResponseWriter, req bunrouter.Request) error {
 		fileID := req.Params().ByName("fileID")
-		if file, ok := currentSessions[fileID]; !ok {
+		if file, ok := currentSessions.s[fileID]; !ok {
 			w.WriteHeader(http.StatusBadRequest)
 			return nil
 		} else {
@@ -132,14 +134,17 @@ func SetCellColor(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.SetCellColor(sheetName, input.Cell, input.Color); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	currentSessions.s[fileID] = file
+	currentSessions.m.Unlock()
 	return nil
 }
 
@@ -157,14 +162,17 @@ func SetCellFontSize(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.SetCellFontSize(sheetName, input.Cell, input.Size); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	currentSessions.s[fileID] = file
+	currentSessions.m.Unlock()
 	return nil
 }
 
@@ -183,14 +191,17 @@ func SetCellBorder(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.SetCellBorder(sheetName, input.Cell, input.Color, input.StyleID); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	currentSessions.s[fileID] = file
+	currentSessions.m.Unlock()
 	return nil
 }
 
@@ -208,14 +219,17 @@ func SetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.SetCellValue(sheetName, input.Cell, input.Value); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	currentSessions.s[fileID] = file
+	currentSessions.m.Unlock()
 	return nil
 }
 
@@ -227,7 +241,7 @@ func BulkSetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 		return err
 	}
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	for cell, v := range input {
 		if err := file.SetCellValue(sheetName, cell, v); err != nil {
@@ -236,21 +250,27 @@ func BulkSetCellValue(w http.ResponseWriter, req bunrouter.Request) error {
 			return err
 		}
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	currentSessions.s[fileID] = file
+	currentSessions.m.Unlock()
 	return nil
 }
 
 func SaveFile(w http.ResponseWriter, req bunrouter.Request) error {
 	defer req.Body.Close()
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	if err := file.Save(fmt.Sprintf("outputs/%s.xlsx", fileID)); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't save file:" + err.Error()))
 		return err
 	}
 	// purge the file from memory
-	delete(currentSessions, fileID)
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
 
 	return nil
 }
@@ -269,14 +289,18 @@ func MergeCell(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.MergeCell(sheetName, input.HCell, input.VCell); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't merge cells:" + err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
+
 	return nil
 }
 
@@ -294,14 +318,18 @@ func BoldCell(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.BoldCell(sheetName, input.Cell, input.Bold); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't bold cell:" + err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
+
 	return nil
 }
 
@@ -319,14 +347,18 @@ func ItalicCell(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.ItalicCell(sheetName, input.Cell, input.Italic); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't italize cell:" + err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
+
 	return nil
 }
 
@@ -345,14 +377,18 @@ func CenterCell(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.CenterCell(sheetName, input.Cell, input.Horizontal, input.Vertical); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't center cells:" + err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
+
 	return nil
 }
 
@@ -370,14 +406,18 @@ func SetColWidth(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.SetColWidth(sheetName, input.Column, input.Width); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't center cells:" + err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
+
 	return nil
 }
 
@@ -395,14 +435,18 @@ func SetRowHeight(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.SetRowHeight(sheetName, input.Row, input.Height); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't center cells:" + err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
+
 	return nil
 }
 
@@ -421,14 +465,18 @@ func SetCellCenter(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.CenterCell(sheetName, input.Cell, input.Horizontal, input.Vertical); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't center cells:" + err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
+
 	return nil
 }
 
@@ -448,14 +496,18 @@ func SetDefinedName(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.NewDefinedName(sheetName, input.Name, input.VCell, input.HCell, input.ScopeSheetName); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't center cells:" + err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
+
 	return nil
 }
 
@@ -474,13 +526,17 @@ func SetDataValidation(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	fileID := req.Params().ByName("fileID")
-	file := currentSessions[fileID]
+	file := currentSessions.s[fileID]
 	sheetName := req.Params().ByName("sheetName")
 	if err := file.NewDataValidation(sheetName, input.DefinedName, input.HCell, input.VCell); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("can't center cells:" + err.Error()))
 		return err
 	}
-	currentSessions[fileID] = file
+
+	currentSessions.m.Lock()
+	delete(currentSessions.s, fileID)
+	currentSessions.m.Unlock()
+
 	return nil
 }

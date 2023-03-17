@@ -4,10 +4,16 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"time"
+	"sync"
 )
 
-var currentSessions = make(map[string]Session)
+var currentSessions = struct {
+	s map[string]Session
+	m *sync.Mutex
+}{
+	s: make(map[string]Session),
+	m: &sync.Mutex{},
+}
 
 var serverPort, fileServerPort, defaultSessionPurgeHour int
 var debug bool
@@ -23,14 +29,14 @@ func main() {
 	RunServer(fmt.Sprint(serverPort), fmt.Sprint(fileServerPort), debug)
 }
 
-func unusedSessionPurger() {
+// func unusedSessionPurger() {
 
-	ticker := time.Tick(time.Hour * time.Duration(defaultSessionPurgeHour))
-	for range ticker {
-		for k, v := range currentSessions {
-			if time.Since(v.LastTimeUsed) > time.Hour*time.Duration(defaultSessionPurgeHour) {
-				delete(currentSessions, k)
-			}
-		}
-	}
-}
+// 	ticker := time.Tick(time.Hour * time.Duration(defaultSessionPurgeHour))
+// 	for range ticker {
+// 		for k, v := range currentSessions {
+// 			if time.Since(v.LastTimeUsed) > time.Hour*time.Duration(defaultSessionPurgeHour) {
+// 				delete(currentSessions, k)
+// 			}
+// 		}
+// 	}
+// }
