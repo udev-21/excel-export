@@ -92,6 +92,7 @@ func FileExistsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 	return func(w http.ResponseWriter, req bunrouter.Request) error {
 		fileID := req.Params().ByName("fileID")
 		if _, ok := currentSessions.s[fileID]; !ok {
+			log.Println("FileExistsMiddleware: file not found")
 			w.WriteHeader(http.StatusBadRequest)
 			return nil
 		} else {
