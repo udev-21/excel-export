@@ -304,7 +304,7 @@ func MergeCell(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	currentSessions.m.Lock()
-	delete(currentSessions.s, fileID)
+	currentSessions.s[fileID] = file
 	currentSessions.m.Unlock()
 
 	return nil
@@ -333,7 +333,7 @@ func BoldCell(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	currentSessions.m.Lock()
-	delete(currentSessions.s, fileID)
+	currentSessions.s[fileID] = file
 	currentSessions.m.Unlock()
 
 	return nil
@@ -362,7 +362,7 @@ func ItalicCell(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	currentSessions.m.Lock()
-	delete(currentSessions.s, fileID)
+	currentSessions.s[fileID] = file
 	currentSessions.m.Unlock()
 
 	return nil
@@ -392,7 +392,7 @@ func CenterCell(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	currentSessions.m.Lock()
-	delete(currentSessions.s, fileID)
+	currentSessions.s[fileID] = file
 	currentSessions.m.Unlock()
 
 	return nil
@@ -421,7 +421,7 @@ func SetColWidth(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	currentSessions.m.Lock()
-	delete(currentSessions.s, fileID)
+	currentSessions.s[fileID] = file
 	currentSessions.m.Unlock()
 
 	return nil
@@ -450,7 +450,7 @@ func SetRowHeight(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	currentSessions.m.Lock()
-	delete(currentSessions.s, fileID)
+	currentSessions.s[fileID] = file
 	currentSessions.m.Unlock()
 
 	return nil
@@ -480,7 +480,7 @@ func SetCellCenter(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	currentSessions.m.Lock()
-	delete(currentSessions.s, fileID)
+	currentSessions.s[fileID] = file
 	currentSessions.m.Unlock()
 
 	return nil
@@ -511,7 +511,7 @@ func SetDefinedName(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	currentSessions.m.Lock()
-	delete(currentSessions.s, fileID)
+	currentSessions.s[fileID] = file
 	currentSessions.m.Unlock()
 
 	return nil
@@ -541,7 +541,7 @@ func SetDataValidation(w http.ResponseWriter, req bunrouter.Request) error {
 	}
 
 	currentSessions.m.Lock()
-	delete(currentSessions.s, fileID)
+	currentSessions.s[fileID] = file
 	currentSessions.m.Unlock()
 
 	return nil
