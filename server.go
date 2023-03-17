@@ -107,11 +107,13 @@ func SheetExistsMiddleware(next bunrouter.HandlerFunc) bunrouter.HandlerFunc {
 	return func(w http.ResponseWriter, req bunrouter.Request) error {
 		fileID := req.Params().ByName("fileID")
 		if file, ok := currentSessions.s[fileID]; !ok {
+			log.Println("sheetExistsMiddleware: file not found")
 			w.WriteHeader(http.StatusBadRequest)
 			return nil
 		} else {
 			sheetName := req.Params().ByName("sheetName")
 			if _, ok := file.sheets[sheetName]; !ok {
+				log.Println("sheetExistsMiddleware: sheet not found")
 				w.WriteHeader(http.StatusBadRequest)
 				return nil
 			} else {
